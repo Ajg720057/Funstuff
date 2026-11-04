@@ -50,7 +50,7 @@ which is fine for a private game among friends.
 
 The app needs to be served over HTTPS. This repo publishes itself to GitHub
 Pages from the `main` branch (`.github/workflows/pages.yml`), so the app is at
-<https://ajg720057.github.io/funstuff/pinochle/>.
+<https://ajg720057.github.io/Funstuff/pinochle/>.
 
 On each Samsung phone: open that link in Samsung Internet or Chrome, then use
 the menu → **Add page to → Home screen** (Samsung Internet) or **Install app /
