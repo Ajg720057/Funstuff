@@ -135,11 +135,13 @@ label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 4px
 .card.dim { opacity: 0.38; }
 .card.selected { transform: translateY(-10px); border-color: var(--gold); box-shadow: 0 6px 12px rgba(0,0,0,.5); }
 .hand {
-  display: grid;
-  grid-template-columns: repeat(var(--cols, 8), 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 5px;
   padding-top: 12px;
 }
+.hand .card { width: calc((100% - (var(--cols, 8) - 1) * 5px) / var(--cols, 8)); flex: none; }
 .hand .card.playable:active { transform: translateY(-6px); }
 .cards-row { display: flex; gap: 8px; justify-content: center; }
 .cards-row .card { width: 56px; }

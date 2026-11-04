@@ -532,7 +532,8 @@ function handView(g) {
   const legal = new Set(legalPlays(g, me));
   const playing = g.phase === 'play' && g.turn === me;
   const burying = g.phase === 'bury' && g.bidder === me;
-  const cols = Math.ceil(hand.length / 2);
+  // Fixed card size: 8 per row (15-card hand), 9 per row only while holding 18.
+  const cols = hand.length > 16 ? 9 : 8;
   const cards = hand
     .map((c) => {
       if (playing) return cardHtml(c, { cls: legal.has(c) ? 'playable' : 'dim', attrs: `data-act="play"${legal.has(c) ? '' : ' aria-disabled="true"'}` });
