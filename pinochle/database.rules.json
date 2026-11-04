@@ -1,0 +1,13 @@
+{
+  "rules": {
+    "pinochle": {
+      "rooms": {
+        "$code": {
+          ".read": true,
+          ".write": true,
+          ".validate": "!newData.exists() || (newData.hasChildren(['state']) && newData.child('state').isString() && newData.child('state').val().length < 60000)"
+        }
+      }
+    }
+  }
+}

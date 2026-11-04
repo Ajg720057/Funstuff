@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fun Stuff</title>
+  <style>
+    :root { --bg: #0f3d2a; --ink: #f3f7f4; --muted: #a9c3b5; --card: rgba(0,0,0,.25); --gold: #f2c14e; color-scheme: dark; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, Roboto, sans-serif; }
+    main { max-width: 560px; margin: 0 auto; padding: 32px 16px; }
+    h1 { margin: 0 0 4px; }
+    p { color: var(--muted); margin: 0 0 24px; }
+    a.tile { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 14px; background: var(--card); color: var(--ink); text-decoration: none; border: 1px solid rgba(255,255,255,.08); }
+    a.tile img { width: 48px; height: 48px; border-radius: 10px; }
+    a.tile b { display: block; font-size: 18px; }
+    a.tile span { color: var(--muted); font-size: 14px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Fun Stuff</h1>
+    <p>Games and odds and ends.</p>
+    <a class="tile" href="pinochle/">
+      <img src="pinochle/icons/icon-192.png" alt="" />
+      <div><b>Pinochle</b><span>Three-handed, for three phones</span></div>
+    </a>
+  </main>
+</body>
+</html>

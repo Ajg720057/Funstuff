@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0f3d2a"/>
+  <g transform="translate(256 270)">
+    <g transform="rotate(-14)"><rect x="-95" y="-135" width="170" height="240" rx="18" fill="#fffdf8" stroke="#0b2b1d" stroke-width="6"/>
+      <text x="-10" y="40" font-family="DejaVu Sans, sans-serif" font-size="150" text-anchor="middle" fill="#1b1b1b">♠</text></g>
+    <g transform="rotate(12)"><rect x="-55" y="-125" width="170" height="240" rx="18" fill="#fffdf8" stroke="#0b2b1d" stroke-width="6"/>
+      <text x="30" y="50" font-family="DejaVu Sans, sans-serif" font-size="150" text-anchor="middle" fill="#c62828">♦</text></g>
+  </g>
+</svg>
