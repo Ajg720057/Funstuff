@@ -1,5 +1,5 @@
 // Pure planning logic: filtering, pricing, shopping list and plan generation.
-import { INGREDIENTS, RECIPES, STORES, AISLES } from './data.js';
+import { INGREDIENTS, RECIPES, REGIONS, AISLES } from './data.js';
 
 const DIET_ALLOWS = {
   any: ['m', 'f', 'd', 'v', 'p'],
@@ -12,8 +12,14 @@ export const DEFAULT_SETTINGS = {
   budget: 80,
   people: 2,
   nights: 7,
-  store: 'walmart',
+  region: 'chicago',
+  store: 'jewel',
+  taxRate: 1,
   diet: 'any',
+  allergies: [],
+  cuisines: [],
+  maxKcal: 0,
+  lunches: false,
   likes: ['quick'],
   dislikes: [],
   appliances: ['stove', 'oven', 'microwave'],
@@ -22,8 +28,22 @@ export const DEFAULT_SETTINGS = {
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
+export function regionOf(settings) {
+  return REGIONS[settings.region] || REGIONS.chicago;
+}
+
+export function storeOf(settings) {
+  const { stores } = regionOf(settings);
+  return stores[settings.store] || Object.values(stores)[0];
+}
+
 export function storeMult(settings) {
-  return (STORES[settings.store] || STORES.kroger).mult;
+  return regionOf(settings).mult * storeOf(settings).mult;
+}
+
+// Portions cooked per dinner: one per person, doubled when cooking extra for lunch.
+export function servings(settings) {
+  return settings.people * (settings.lunches ? 2 : 1);
 }
 
 // Words the user does not want to see, matched against ingredient keys and names.
@@ -48,6 +68,10 @@ export function recipeAllowed(recipe, settings, blocked = []) {
     if (!allowedKinds.includes(INGREDIENTS[key].kind)) return false;
     if (settings.dislikes.some((w) => ingredientMatches(key, w))) return false;
   }
+  const allergies = settings.allergies || [];
+  if (allergies.length && recipe.ing.some(([k]) => allergies.some((a) => INGREDIENTS[k].allergens.includes(a)))) return false;
+  if (settings.cuisines?.length && !settings.cuisines.includes(recipe.cuisine)) return false;
+  if (settings.maxKcal && recipe.macros[0] > settings.maxKcal) return false;
   if (!recipe.needs.every((a) => settings.appliances.includes(a))) return false;
   // Slow-cooker recipes are mostly hands-off, so they ignore the time limit.
   if (!recipe.needs.includes('slowcooker') && recipe.time > settings.maxTime) return false;
@@ -60,7 +84,7 @@ export function candidates(settings, blocked = []) {
 
 // What one meal costs if you only count the share of each pack it uses.
 export function mealCost(recipe, settings) {
-  const scale = settings.people / 2;
+  const scale = servings(settings) / 2;
   let total = 0;
   for (const [key, qty] of recipe.ing) {
     const ing = INGREDIENTS[key];
@@ -70,12 +94,13 @@ export function mealCost(recipe, settings) {
 }
 
 export function perServing(recipe, settings) {
-  return round2(mealCost(recipe, settings) / settings.people);
+  return round2(mealCost(recipe, settings) / servings(settings));
 }
 
 // Combine every meal's ingredients into whole packs to buy, grouped by aisle.
-export function shoppingList(recipes, settings) {
-  const scale = settings.people / 2;
+// Items in `have` are listed but not counted in the total.
+export function shoppingList(recipes, settings, have = []) {
+  const scale = servings(settings) / 2;
   const mult = storeMult(settings);
   const byKey = new Map();
   for (const r of recipes) {
@@ -93,18 +118,21 @@ export function shoppingList(recipes, settings) {
     const pantry = ing.kind === 'p';
     const packs = pantry ? 0 : Math.ceil(e.qty / ing.pack - 1e-9);
     const cost = pantry ? 0 : round2(packs * ing.price * mult);
-    total += cost;
+    const owned = have.includes(e.key);
+    if (!owned) total += cost;
     items.push({
       key: e.key, name: ing.name, aisle: ing.aisle, unit: ing.unit, pack: ing.pack,
-      qty: round2(e.qty), packs, cost, pantry, meals: e.meals,
+      qty: round2(e.qty), packs, cost, pantry, have: owned, meals: e.meals,
     });
   }
   items.sort((a, b) => AISLES.indexOf(a.aisle) - AISLES.indexOf(b.aisle) || a.name.localeCompare(b.name));
-  return { items, total: round2(total) };
+  const subtotal = round2(total);
+  const tax = round2(subtotal * (Number(settings.taxRate) || 0) / 100);
+  return { items, subtotal, tax, total: round2(subtotal + tax) };
 }
 
-export function weekTotal(recipes, settings) {
-  return shoppingList(recipes, settings).total;
+export function weekTotal(recipes, settings, have = []) {
+  return shoppingList(recipes, settings, have).total;
 }
 
 export function score(recipe, settings) {
@@ -179,12 +207,12 @@ export function makePlan(settings, { seed = Date.now(), avoid = [], blocked = []
 }
 
 // Options to replace the meal on one night, cheapest effect on the total first.
-export function swapOptions(settings, ids, index, blocked = []) {
+export function swapOptions(settings, ids, index, blocked = [], have = []) {
   const byId = Object.fromEntries(RECIPES.map((r) => [r.id, r]));
   const others = ids.filter((_, i) => i !== index).map((id) => byId[id]);
   return candidates(settings, blocked)
     .filter((r) => !ids.includes(r.id))
-    .map((r) => ({ recipe: r, total: weekTotal([...others, r], settings) }))
+    .map((r) => ({ recipe: r, total: weekTotal([...others, r], settings, have) }))
     .sort((a, b) => a.total - b.total);
 }
 

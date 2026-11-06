@@ -1,7 +1,7 @@
-import { STORES, APPLIANCES, TAGS, INGREDIENTS } from './data.js';
+import { REGIONS, APPLIANCES, TAGS, INGREDIENTS, ALLERGY_OPTIONS, CUISINES } from './data.js';
 import {
   DEFAULT_SETTINGS, makePlan, shoppingList, mealCost, perServing, swapOptions,
-  recipeById, parseDislikes, candidates, formatQty,
+  recipeById, parseDislikes, candidates, formatQty, storeOf, regionOf, servings,
 } from './planner.js';
 
 const KEY = 'supper-state-v1';
@@ -13,9 +13,9 @@ const $toast = document.getElementById('toast');
 function load() {
   try {
     const s = JSON.parse(localStorage.getItem(KEY));
-    if (s && s.settings) return { ...s, settings: { ...DEFAULT_SETTINGS, ...s.settings } };
+    if (s && s.settings) return { have: [], ...s, settings: { ...DEFAULT_SETTINGS, ...s.settings } };
   } catch { /* storage unavailable */ }
-  return { settings: { ...DEFAULT_SETTINGS }, plan: null, checked: [], blocked: [], view: 'prefs' };
+  return { settings: { ...DEFAULT_SETTINGS }, plan: null, checked: [], have: [], blocked: [], view: 'prefs' };
 }
 
 let state = load();
@@ -47,6 +47,7 @@ function newPlan() {
   }
   state.plan = { ids: plan.ids, made: Date.now() };
   state.checked = [];
+  state.have = [];
   save();
   const unique = new Set(plan.ids).size;
   if (unique < plan.ids.length) toast(`Only ${unique} recipes fit your settings, so some nights repeat.`);
@@ -86,7 +87,7 @@ function tab(id, icon, label) {
 function renderWeek() {
   const s = state.settings;
   const recipes = planRecipes();
-  const { total } = shoppingList(recipes, s);
+  const { total } = shoppingList(recipes, s, state.have);
   const pct = Math.min(100, (total / s.budget) * 100);
   const over = total > s.budget;
   const avg = (i) => Math.round(recipes.reduce((a, r) => a + r.macros[i], 0) / recipes.length);
@@ -94,7 +95,7 @@ function renderWeek() {
     <div class="summary card">
       <div class="row between">
         <div>
-          <div class="muted small">Estimated shop at ${esc(STORES[s.store].name)}</div>
+          <div class="muted small">Estimated shop at ${esc(storeOf(s).name)}${s.taxRate ? ', with tax' : ''}</div>
           <div class="big">${money(total)} <span class="muted small">of ${money(s.budget)}</span></div>
         </div>
         <button class="btn ghost" data-act="regen">↻ New week</button>
@@ -102,7 +103,7 @@ function renderWeek() {
       <div class="bar ${over ? 'over' : ''}"><i style="width:${pct}%"></i></div>
       <div class="stats">
         <div><b>${recipes.length}</b><span>dinners</span></div>
-        <div><b>${s.people}</b><span>${s.people === 1 ? 'person' : 'people'}</span></div>
+        <div><b>${servings(s)}</b><span>${s.lunches ? 'portions' : s.people === 1 ? 'person' : 'people'}</span></div>
         <div><b>${avg(0)}</b><span>avg kcal</span></div>
         <div><b>${avg(1)}g</b><span>avg protein</span></div>
       </div>
@@ -134,8 +135,9 @@ function fmtTime(min) {
 
 function renderList() {
   const s = state.settings;
-  const { items, total } = shoppingList(planRecipes(), s);
+  const { items, subtotal, tax, total } = shoppingList(planRecipes(), s, state.have);
   const bought = items.filter((i) => !i.pantry);
+  const owned = bought.filter((i) => i.have).length;
   const pantry = items.filter((i) => i.pantry);
   const done = bought.filter((i) => state.checked.includes(i.key)).length;
   const groups = {};
@@ -144,24 +146,28 @@ function renderList() {
     <div class="summary card">
       <div class="row between">
         <div>
-          <div class="muted small">${bought.length} items · ${done} in the cart</div>
+          <div class="muted small">${bought.length} items · ${done} in the cart${owned ? ` · ${owned} at home` : ''}</div>
           <div class="big">${money(total)}</div>
         </div>
         <button class="btn ghost" data-act="copy">Copy list</button>
       </div>
-      <div class="muted small">Estimated ${esc(STORES[s.store].name)} prices. Shelf prices vary, so treat this as a guide.</div>
+      ${tax ? `<div class="muted small">${money(subtotal)} + ${s.taxRate}% grocery tax ${money(tax)}</div>` : ''}
+      <div class="muted small">Estimated ${esc(storeOf(s).name)} prices (${esc(regionOf(s).name)}). Shelf prices vary, so treat this as a guide. Tap “Have it” for anything already at home.</div>
     </div>
     ${Object.entries(groups).map(([aisle, list]) => `
       <h4 class="aisle">${esc(aisle)}</h4>
       <div class="card list">
         ${list.map((it) => `
-          <label class="item ${state.checked.includes(it.key) ? 'done' : ''}">
+          <label class="item ${state.checked.includes(it.key) ? 'done' : ''} ${it.have ? 'owned' : ''}">
             <input type="checkbox" data-check="${it.key}" ${state.checked.includes(it.key) ? 'checked' : ''} />
             <div class="item-body">
               <div>${esc(it.name)}</div>
               <div class="muted small">Need ${formatQty(it.qty, it.unit)} · ${packLabel(it)}</div>
             </div>
-            <div class="price">${money(it.cost)}</div>
+            <div class="price-col">
+              <div class="price">${it.have ? '—' : money(it.cost)}</div>
+              <button type="button" class="have ${it.have ? 'on' : ''}" data-have="${it.key}">${it.have ? '✓ Have it' : 'Have it'}</button>
+            </div>
           </label>`).join('')}
       </div>`).join('')}
     ${pantry.length ? `
@@ -195,12 +201,31 @@ function renderPrefs() {
           <select name="nights">${[3, 4, 5, 6, 7].map((n) => `<option ${n === s.nights ? 'selected' : ''}>${n}</option>`).join('')}</select>
         </label>
       </div>
+      <div class="two">
+        <label class="field"><span>Area</span>
+          <select name="region">${Object.entries(REGIONS).map(([k, v]) => `<option value="${k}" ${k === s.region ? 'selected' : ''}>${v.name}</option>`).join('')}</select>
+        </label>
+        <label class="field"><span>Grocery tax %</span>
+          <input type="number" name="taxRate" min="0" max="15" step="0.25" value="${s.taxRate}" />
+        </label>
+      </div>
       <label class="field"><span>Where you shop</span>
-        <select name="store">${Object.entries(STORES).map(([k, v]) => `<option value="${k}" ${k === s.store ? 'selected' : ''}>${v.name}</option>`).join('')}</select>
+        <select name="store">${storeOptions(s.region, s.store)}</select>
       </label>
       <div class="field"><span>Diet</span>
         <div class="pills">${['any', 'pescatarian', 'vegetarian', 'vegan'].map((d) => `
           <label class="pill"><input type="radio" name="diet" value="${d}" ${d === s.diet ? 'checked' : ''} /><span>${d === 'any' ? 'Anything' : d[0].toUpperCase() + d.slice(1)}</span></label>`).join('')}
+        </div>
+      </div>
+      <div class="field"><span>Allergies &amp; intolerances</span>
+        <div class="pills">${Object.entries(ALLERGY_OPTIONS).map(([k, v]) => `
+          <label class="pill"><input type="checkbox" name="allergies" value="${k}" ${s.allergies.includes(k) ? 'checked' : ''} /><span>No ${v.toLowerCase()}</span></label>`).join('')}
+        </div>
+        <small class="muted">Based on typical ingredients. Always check labels.</small>
+      </div>
+      <div class="field"><span>Cuisines <small class="muted">(none picked = all)</small></span>
+        <div class="pills">${Object.entries(CUISINES).map(([k, v]) => `
+          <label class="pill"><input type="checkbox" name="cuisines" value="${k}" ${s.cuisines.includes(k) ? 'checked' : ''} /><span>${v}</span></label>`).join('')}
         </div>
       </div>
       <div class="field"><span>What you're into</span>
@@ -213,9 +238,15 @@ function renderPrefs() {
           <label class="pill"><input type="checkbox" name="appliances" value="${k}" ${s.appliances.includes(k) ? 'checked' : ''} /><span>${v}</span></label>`).join('')}
         </div>
       </div>
-      <label class="field"><span>Max cooking time</span>
-        <select name="maxTime">${[20, 30, 45, 60].map((n) => `<option value="${n}" ${n === s.maxTime ? 'selected' : ''}>${n === 60 ? 'Up to an hour' : `${n} minutes`}</option>`).join('')}</select>
-      </label>
+      <div class="two">
+        <label class="field"><span>Max cooking time</span>
+          <select name="maxTime">${[20, 30, 45, 60].map((n) => `<option value="${n}" ${n === s.maxTime ? 'selected' : ''}>${n === 60 ? 'Up to an hour' : `${n} minutes`}</option>`).join('')}</select>
+        </label>
+        <label class="field"><span>Calories per serving</span>
+          <select name="maxKcal">${[0, 500, 600, 700, 800].map((n) => `<option value="${n}" ${n === s.maxKcal ? 'selected' : ''}>${n ? `Up to ${n}` : 'Any'}</option>`).join('')}</select>
+        </label>
+      </div>
+      <label class="toggle"><input type="checkbox" name="lunches" ${s.lunches ? 'checked' : ''} /><span>Cook extra for tomorrow's lunch <small class="muted">(doubles portions)</small></span></label>
       <label class="field"><span>Never give me (comma separated)</span>
         <input type="text" name="dislikes" placeholder="e.g. cilantro, mushrooms" value="${esc(s.dislikes.join(', '))}" />
       </label>
@@ -228,13 +259,24 @@ function renderPrefs() {
     </form>`;
 }
 
+function storeOptions(region, selected) {
+  const { stores } = REGIONS[region] || REGIONS.chicago;
+  return Object.entries(stores).map(([k, v]) => `<option value="${k}" ${k === selected ? 'selected' : ''}>${esc(v.name)}</option>`).join('');
+}
+
 function readPrefs(form) {
   const fd = new FormData(form);
   return {
     budget: Math.max(10, Number(fd.get('budget')) || DEFAULT_SETTINGS.budget),
     people: Number(fd.get('people')),
     nights: Number(fd.get('nights')),
+    region: fd.get('region'),
     store: fd.get('store'),
+    taxRate: Math.min(15, Math.max(0, Number(fd.get('taxRate')) || 0)),
+    allergies: fd.getAll('allergies'),
+    cuisines: fd.getAll('cuisines'),
+    maxKcal: Number(fd.get('maxKcal')),
+    lunches: fd.get('lunches') === 'on',
     diet: fd.get('diet'),
     likes: fd.getAll('likes'),
     appliances: fd.getAll('appliances'),
@@ -260,7 +302,8 @@ function closeSheet() {
 function showRecipe(i) {
   const s = state.settings;
   const r = planRecipes()[i];
-  const scale = s.people / 2;
+  const n = servings(s);
+  const scale = n / 2;
   const [kcal, p, c, f] = r.macros;
   openSheet(`
     <button class="close" data-close aria-label="Close">✕</button>
@@ -268,7 +311,7 @@ function showRecipe(i) {
     <div class="muted small center">${DAYS[i % 7]}</div>
     <h2 class="center">${esc(r.name)}</h2>
     <div class="chips center">
-      <span>⏱ ${fmtTime(r.time)}</span><span>🍽 ${s.people} serving${s.people > 1 ? 's' : ''}</span><span>💲${mealCost(r, s).toFixed(2)}</span>
+      <span>⏱ ${fmtTime(r.time)}</span><span>🍽 ${n} serving${n > 1 ? 's' : ''}${s.lunches ? ' (incl. lunch)' : ''}</span><span>💲${mealCost(r, s).toFixed(2)}</span>
     </div>
     <div class="macros">
       <div><b>${kcal}</b><span>kcal</span></div><div><b>${p}g</b><span>protein</span></div>
@@ -288,8 +331,8 @@ function showRecipe(i) {
 function showSwap(i) {
   const s = state.settings;
   const ids = state.plan.ids;
-  const current = shoppingList(planRecipes(), s).total;
-  const opts = swapOptions(s, ids, i, state.blocked);
+  const current = shoppingList(planRecipes(), s, state.have).total;
+  const opts = swapOptions(s, ids, i, state.blocked, state.have);
   const r = recipeById(ids[i]);
   openSheet(`
     <button class="close" data-close aria-label="Close">✕</button>
@@ -308,10 +351,16 @@ function showSwap(i) {
 // ---------- Events ----------
 
 document.addEventListener('click', async (e) => {
-  const t = e.target.closest('[data-go],[data-act],[data-open],[data-swap],[data-pick],[data-block],[data-unblock],[data-close]');
+  const t = e.target.closest('[data-go],[data-act],[data-open],[data-swap],[data-pick],[data-block],[data-unblock],[data-close],[data-have]');
   if (!t) return;
   const d = t.dataset;
   if ('close' in d) return closeSheet();
+  if (d.have) {
+    e.preventDefault();
+    state.have = state.have.includes(d.have) ? state.have.filter((k) => k !== d.have) : [...state.have, d.have];
+    save();
+    return render();
+  }
   if (d.go) return go(d.go);
   if (d.swap !== undefined) { e.stopPropagation(); return showSwap(Number(d.swap)); }
   if (d.open !== undefined) return showRecipe(Number(d.open));
@@ -340,8 +389,8 @@ document.addEventListener('click', async (e) => {
     return;
   }
   if (d.act === 'copy') {
-    const { items, total } = shoppingList(planRecipes(), state.settings);
-    const text = items.filter((i) => !i.pantry)
+    const { items, total } = shoppingList(planRecipes(), state.settings, state.have);
+    const text = items.filter((i) => !i.pantry && !i.have)
       .map((i) => `${state.checked.includes(i.key) ? '[x]' : '[ ]'} ${i.name} (${packLabel(i)}) ${money(i.cost)}`)
       .join('\n') + `\n\nEstimated total: ${money(total)}`;
     try { await navigator.clipboard.writeText(text); toast('List copied'); } catch { toast('Copy not available here'); }
@@ -357,6 +406,11 @@ document.addEventListener('change', (e) => {
     return;
   }
   const form = e.target.closest('#prefs');
+  if (form && e.target.name === 'region') {
+    const region = REGIONS[e.target.value];
+    form.elements.store.innerHTML = storeOptions(e.target.value, form.elements.store.value);
+    form.elements.taxRate.value = region.tax;
+  }
   if (form) {
     const n = candidates(readPrefs(form), state.blocked).length;
     document.getElementById('match').textContent = `${n} recipes match`;

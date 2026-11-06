@@ -1,6 +1,6 @@
 // Ingredient catalog and recipes.
 // Prices are rough US supermarket shelf prices (USD) for one pack at a
-// mid-price store; store multipliers in STORES adjust them. They are estimates.
+// mid-price store; REGIONS below adjust them by area and store. They are estimates.
 
 // key: [name, unit, pack size (in unit), pack price, aisle, kind]
 // kind: m = meat, f = fish/seafood, d = dairy/egg, v = plant, p = pantry staple (not priced)
@@ -73,26 +73,97 @@ const RAW_INGREDIENTS = {
   garam_masala: ['Garam masala', 'tsp', 1, 0, 'Pantry', 'p'],
   chili_flakes: ['Chili flakes', 'tsp', 1, 0, 'Pantry', 'p'],
   mayo: ['Mayonnaise', 'tbsp', 1, 0, 'Pantry', 'p'],
+  ground_turkey: ['Ground turkey', 'lb', 1, 5.0, 'Meat & fish', 'm'],
+  italian_sausage: ['Italian sausage', 'lb', 1, 4.5, 'Meat & fish', 'm'],
+  bacon: ['Bacon', 'slice', 12, 5.5, 'Meat & fish', 'm'],
+  chicken_drumsticks: ['Chicken drumsticks', 'lb', 3, 5.0, 'Meat & fish', 'm'],
+  pork_shoulder: ['Pork shoulder', 'lb', 3, 9.0, 'Meat & fish', 'm'],
+  chuck_roast: ['Beef chuck roast', 'lb', 2.5, 16.0, 'Meat & fish', 'm'],
+  cod: ['Cod fillets', 'lb', 1, 8.0, 'Meat & fish', 'f'],
+  paneer: ['Paneer', 'oz', 12, 5.5, 'Dairy & eggs', 'd'],
+  ricotta: ['Ricotta', 'oz', 15, 3.5, 'Dairy & eggs', 'd'],
+  mozzarella: ['Shredded mozzarella', 'oz', 8, 2.8, 'Dairy & eggs', 'd'],
+  sour_cream: ['Sour cream', 'cup', 2, 2.2, 'Dairy & eggs', 'd'],
+  quinoa: ['Quinoa', 'cup', 2, 4.0, 'Rice, pasta & grains', 'v'],
+  couscous: ['Couscous', 'cup', 2.5, 2.5, 'Rice, pasta & grains', 'v'],
+  gnocchi: ['Shelf-stable gnocchi', 'oz', 16, 3.0, 'Rice, pasta & grains', 'v'],
+  panko: ['Panko breadcrumbs', 'cup', 3, 2.5, 'Rice, pasta & grains', 'v'],
+  pizza_dough: ['Pizza dough', 'lb', 1, 3.0, 'Refrigerated', 'v'],
+  pita: ['Pita bread', 'piece', 6, 2.5, 'Bakery', 'v'],
+  rolls: ['French rolls', 'roll', 6, 3.5, 'Bakery', 'v'],
+  corn_tortillas: ['Corn tortillas', 'tortilla', 30, 2.5, 'International', 'v'],
+  kidney_beans: ['Kidney beans', 'can', 1, 0.9, 'Canned & jarred', 'v'],
+  cannellini: ['Cannellini beans', 'can', 1, 1.0, 'Canned & jarred', 'v'],
+  marinara: ['Marinara sauce', 'cup', 3, 2.5, 'Canned & jarred', 'v'],
+  giardiniera: ['Hot giardiniera', 'cup', 2, 3.5, 'Canned & jarred', 'v'],
+  tahini: ['Tahini', 'tbsp', 16, 6.0, 'International', 'v'],
+  cashews: ['Cashews', 'oz', 8, 5.0, 'Snacks & nuts', 'v'],
+  cauliflower: ['Cauliflower', 'head', 1, 3.0, 'Produce', 'v'],
+  kale: ['Kale', 'bunch', 1, 2.0, 'Produce', 'v'],
+  green_beans: ['Green beans', 'lb', 1, 2.0, 'Produce', 'v'],
+  eggplant: ['Eggplant', 'eggplant', 1, 1.5, 'Produce', 'v'],
+};
+
+// Common allergens in each ingredient (check labels: brands differ).
+// g = gluten, d = dairy, e = egg, n = tree nuts or peanuts, s = shellfish, y = soy, f = fish
+const ALLERGENS = {
+  shrimp: 's', salmon: 'f', cod: 'f', tuna_can: 'f', tofu: 'y', eggs: 'e', mayo: 'e',
+  halloumi: 'd', feta: 'd', cheddar: 'd', parmesan: 'd', greek_yogurt: 'd', heavy_cream: 'd',
+  milk: 'd', butter: 'd', paneer: 'd', ricotta: 'd', mozzarella: 'd', sour_cream: 'd',
+  pasta: 'g', tortillas: 'g', naan: 'gd', buns: 'g', rolls: 'g', pita: 'g', couscous: 'g',
+  gnocchi: 'g', panko: 'g', pizza_dough: 'g', soy_sauce: 'gy', gochujang: 'gy', pesto: 'dn',
+  peanut_butter: 'n', cashews: 'n',
 };
 
 export const INGREDIENTS = Object.fromEntries(
   Object.entries(RAW_INGREDIENTS).map(([key, [name, unit, pack, price, aisle, kind]]) =>
-    [key, { key, name, unit, pack, price, aisle, kind }])
+    [key, { key, name, unit, pack, price, aisle, kind, allergens: ALLERGENS[key] || '' }])
 );
+
+export const ALLERGY_OPTIONS = {
+  g: 'Gluten', d: 'Dairy', e: 'Eggs', n: 'Nuts', s: 'Shellfish', f: 'Fish', y: 'Soy',
+};
+
+export const CUISINES = {
+  american: 'American', italian: 'Italian', mexican: 'Mexican', asian: 'East Asian',
+  indian: 'Indian', mediterranean: 'Mediterranean',
+};
 
 export const AISLES = [
   'Produce', 'Meat & fish', 'Dairy & eggs', 'Refrigerated', 'Bakery',
-  'Rice, pasta & grains', 'Canned & jarred', 'International', 'Frozen', 'Pantry',
+  'Rice, pasta & grains', 'Canned & jarred', 'International', 'Snacks & nuts', 'Frozen', 'Pantry',
 ];
 
-// Price multiplier relative to a mid-price store.
-export const STORES = {
-  aldi: { name: 'Aldi', mult: 0.85 },
-  walmart: { name: 'Walmart', mult: 0.95 },
-  kroger: { name: 'Kroger', mult: 1.0 },
-  target: { name: 'Target', mult: 1.05 },
-  safeway: { name: 'Safeway', mult: 1.12 },
-  wholefoods: { name: 'Whole Foods', mult: 1.3 },
+// Prices above are a US mid-price baseline. Each region scales them, then each
+// store scales again. These are estimates, not live prices.
+// Chicago: grocery prices run roughly 3-7% above the national average.
+export const REGIONS = {
+  chicago: {
+    name: 'Chicago area', mult: 1.05, tax: 1,
+    stores: {
+      aldi: { name: 'Aldi', mult: 0.85 },
+      walmart: { name: 'Walmart', mult: 0.93 },
+      meijer: { name: 'Meijer', mult: 0.95 },
+      petes: { name: "Pete's Fresh Market", mult: 0.97 },
+      tonys: { name: "Tony's Fresh Market", mult: 0.97 },
+      traderjoes: { name: "Trader Joe's", mult: 1.0 },
+      target: { name: 'Target', mult: 1.03 },
+      jewel: { name: 'Jewel-Osco', mult: 1.12 },
+      marianos: { name: "Mariano's", mult: 1.12 },
+      wholefoods: { name: 'Whole Foods', mult: 1.3 },
+    },
+  },
+  us: {
+    name: 'US average', mult: 1.0, tax: 0,
+    stores: {
+      aldi: { name: 'Aldi', mult: 0.85 },
+      walmart: { name: 'Walmart', mult: 0.95 },
+      kroger: { name: 'Kroger', mult: 1.0 },
+      target: { name: 'Target', mult: 1.05 },
+      safeway: { name: 'Safeway', mult: 1.12 },
+      wholefoods: { name: 'Whole Foods', mult: 1.3 },
+    },
+  },
 };
 
 export const APPLIANCES = {
@@ -117,7 +188,7 @@ export const TAGS = {
 // macros are per serving: [kcal, protein g, carbs g, fat g].
 export const RECIPES = [
   {
-    id: 'tikka', name: 'Chicken Tikka Masala', emoji: '🍛', time: 45, needs: ['stove'],
+    id: 'tikka', cuisine: 'indian', name: 'Chicken Tikka Masala', emoji: '🍛', time: 45, needs: ['stove'],
     tags: ['high-protein', 'comfort'], macros: [820, 42, 70, 38],
     ing: [['chicken_thigh', 1], ['onion', 1], ['garlic', 3], ['ginger', 1], ['curry_paste', 2],
       ['garam_masala', 2], ['crushed_tomatoes', 1], ['heavy_cream', 0.5], ['rice', 1], ['cilantro', 1]],
@@ -130,7 +201,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'gochujang', name: 'Sticky Gochujang Chicken', emoji: '🌶️', time: 30, needs: ['stove'],
+    id: 'gochujang', cuisine: 'asian', name: 'Sticky Gochujang Chicken', emoji: '🌶️', time: 30, needs: ['stove'],
     tags: ['high-protein', 'quick'], macros: [720, 44, 78, 22],
     ing: [['chicken_thigh', 1], ['gochujang', 2], ['honey', 1], ['soy_sauce', 2], ['garlic', 2],
       ['rice', 1], ['scallion', 1], ['broccoli', 1]],
@@ -142,7 +213,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'shakshuka', name: 'Halloumi Shakshuka', emoji: '🍳', time: 25, needs: ['stove'],
+    id: 'shakshuka', cuisine: 'mediterranean', name: 'Halloumi Shakshuka', emoji: '🍳', time: 25, needs: ['stove'],
     tags: ['quick', 'plant-forward'], macros: [600, 32, 42, 34],
     ing: [['halloumi', 8], ['eggs', 4], ['crushed_tomatoes', 1], ['bell_pepper', 1], ['onion', 1],
       ['garlic', 2], ['paprika', 1], ['cumin', 1], ['naan', 2]],
@@ -154,7 +225,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'shrimp-linguine', name: 'Garlic Shrimp Linguine', emoji: '🍤', time: 20, needs: ['stove'],
+    id: 'shrimp-linguine', cuisine: 'italian', name: 'Garlic Shrimp Linguine', emoji: '🍤', time: 20, needs: ['stove'],
     tags: ['quick', 'high-protein'], macros: [640, 38, 78, 18],
     ing: [['shrimp', 0.75], ['pasta', 8], ['garlic', 4], ['lemon', 1], ['chili_flakes', 1],
       ['butter', 2], ['cherry_tomatoes', 1]],
@@ -166,7 +237,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'peanut-noodles', name: 'Peanut Tofu Noodles', emoji: '🥜', time: 25, needs: ['stove'],
+    id: 'peanut-noodles', cuisine: 'asian', name: 'Peanut Tofu Noodles', emoji: '🥜', time: 25, needs: ['stove'],
     tags: ['budget', 'quick', 'plant-forward'], macros: [610, 28, 70, 26],
     ing: [['tofu', 1], ['noodles', 7], ['peanut_butter', 3], ['soy_sauce', 2], ['lime', 1],
       ['carrot', 2], ['scallion', 1], ['sesame_oil', 1]],
@@ -178,7 +249,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'beef-broccoli', name: 'Beef & Broccoli Stir-Fry', emoji: '🥦', time: 30, needs: ['stove'],
+    id: 'beef-broccoli', cuisine: 'asian', name: 'Beef & Broccoli Stir-Fry', emoji: '🥦', time: 30, needs: ['stove'],
     tags: ['high-protein', 'quick'], macros: [640, 40, 74, 18],
     ing: [['flank_steak', 0.75], ['broccoli', 1], ['soy_sauce', 3], ['honey', 1], ['garlic', 2],
       ['ginger', 1], ['rice', 1]],
@@ -190,7 +261,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'shawarma', name: 'Sheet-Pan Chicken Shawarma Bowls', emoji: '🥙', time: 40, needs: ['oven', 'stove'],
+    id: 'shawarma', cuisine: 'mediterranean', name: 'Sheet-Pan Chicken Shawarma Bowls', emoji: '🥙', time: 40, needs: ['oven', 'stove'],
     tags: ['high-protein', 'healthy'], macros: [650, 46, 66, 20],
     ing: [['chicken_thigh', 1], ['greek_yogurt', 6], ['cucumber', 1], ['cherry_tomatoes', 1],
       ['rice', 1], ['lemon', 1], ['cumin', 2], ['paprika', 2], ['garlic', 2]],
@@ -202,7 +273,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'pesto-pasta', name: 'Pesto Pasta with Peas', emoji: '🍝', time: 20, needs: ['stove'],
+    id: 'pesto-pasta', cuisine: 'italian', name: 'Pesto Pasta with Peas', emoji: '🍝', time: 20, needs: ['stove'],
     tags: ['quick', 'budget', 'plant-forward'], macros: [700, 24, 90, 28],
     ing: [['pasta', 8], ['pesto', 4], ['frozen_peas', 1], ['parmesan', 1], ['lemon', 1]],
     steps: [
@@ -212,7 +283,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'burrito-bowl', name: 'Microwave Black Bean Burrito Bowl', emoji: '🌯', time: 20, needs: ['microwave'],
+    id: 'burrito-bowl', cuisine: 'mexican', name: 'Microwave Black Bean Burrito Bowl', emoji: '🌯', time: 20, needs: ['microwave'],
     tags: ['quick', 'budget', 'plant-forward'], macros: [620, 20, 104, 16],
     ing: [['rice', 1], ['black_beans', 1], ['corn', 1], ['salsa', 0.5], ['avocado', 1],
       ['lime', 1], ['cumin', 1], ['cilantro', 1]],
@@ -224,7 +295,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'tuscan-chicken', name: 'Creamy Tuscan Chicken Pasta', emoji: '🧀', time: 35, needs: ['stove'],
+    id: 'tuscan-chicken', cuisine: 'italian', name: 'Creamy Tuscan Chicken Pasta', emoji: '🧀', time: 35, needs: ['stove'],
     tags: ['comfort', 'high-protein'], macros: [780, 52, 58, 36],
     ing: [['chicken_breast', 1], ['heavy_cream', 0.75], ['spinach', 3], ['cherry_tomatoes', 1],
       ['garlic', 3], ['parmesan', 1], ['pasta', 6]],
@@ -236,7 +307,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'dhal', name: 'Red Lentil Dhal', emoji: '🍲', time: 35, needs: ['stove'],
+    id: 'dhal', cuisine: 'indian', name: 'Red Lentil Dhal', emoji: '🍲', time: 35, needs: ['stove'],
     tags: ['budget', 'healthy', 'plant-forward'], macros: [640, 24, 96, 20],
     ing: [['red_lentils', 1], ['coconut_milk', 1], ['onion', 1], ['garlic', 3], ['ginger', 1],
       ['curry_paste', 1], ['diced_tomatoes', 1], ['spinach', 3], ['rice', 1]],
@@ -248,7 +319,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'af-salmon', name: 'Air-Fryer Honey Soy Salmon', emoji: '🐟', time: 25, needs: ['airfryer'],
+    id: 'af-salmon', cuisine: 'asian', name: 'Air-Fryer Honey Soy Salmon', emoji: '🐟', time: 25, needs: ['airfryer'],
     tags: ['healthy', 'high-protein', 'quick'], macros: [610, 38, 52, 26],
     ing: [['salmon', 0.75], ['sweet_potato', 2], ['broccoli', 1], ['lemon', 1], ['honey', 1], ['soy_sauce', 1]],
     steps: [
@@ -259,7 +330,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'af-chickpea-tacos', name: 'Crispy Chickpea Tacos', emoji: '🌮', time: 20, needs: ['airfryer'],
+    id: 'af-chickpea-tacos', cuisine: 'mexican', name: 'Crispy Chickpea Tacos', emoji: '🌮', time: 20, needs: ['airfryer'],
     tags: ['quick', 'budget', 'plant-forward'], macros: [560, 18, 76, 20],
     ing: [['chickpeas', 1], ['tortillas', 6], ['avocado', 1], ['cabbage', 0.25], ['lime', 1],
       ['salsa', 0.5], ['paprika', 1], ['cumin', 1]],
@@ -271,7 +342,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'enchiladas', name: 'Cheesy Beef Enchiladas', emoji: '🫔', time: 40, needs: ['oven', 'stove'],
+    id: 'enchiladas', cuisine: 'mexican', name: 'Cheesy Beef Enchiladas', emoji: '🫔', time: 40, needs: ['oven', 'stove'],
     tags: ['comfort', 'family', 'high-protein'], macros: [820, 48, 66, 38],
     ing: [['ground_beef', 1], ['tortillas', 6], ['salsa', 1], ['cheddar', 6], ['black_beans', 1],
       ['onion', 1], ['cumin', 2]],
@@ -283,7 +354,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'bolognese', name: 'Weeknight Spaghetti Bolognese', emoji: '🍝', time: 40, needs: ['stove'],
+    id: 'bolognese', cuisine: 'italian', name: 'Weeknight Spaghetti Bolognese', emoji: '🍝', time: 40, needs: ['stove'],
     tags: ['comfort', 'family', 'budget'], macros: [760, 44, 84, 24],
     ing: [['ground_beef', 1], ['pasta', 8], ['crushed_tomatoes', 1], ['onion', 1], ['carrot', 1],
       ['garlic', 2], ['parmesan', 1]],
@@ -295,7 +366,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'green-curry', name: 'Thai Green Chicken Curry', emoji: '🥥', time: 30, needs: ['stove'],
+    id: 'green-curry', cuisine: 'asian', name: 'Thai Green Chicken Curry', emoji: '🥥', time: 30, needs: ['stove'],
     tags: ['quick', 'high-protein'], macros: [700, 44, 72, 26],
     ing: [['chicken_breast', 1], ['coconut_milk', 1], ['curry_paste', 2], ['bell_pepper', 1],
       ['zucchini', 1], ['rice', 1], ['lime', 1], ['cilantro', 1]],
@@ -307,7 +378,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'risotto', name: 'Mushroom Risotto', emoji: '🍄', time: 40, needs: ['stove'],
+    id: 'risotto', cuisine: 'italian', name: 'Mushroom Risotto', emoji: '🍄', time: 40, needs: ['stove'],
     tags: ['comfort', 'plant-forward'], macros: [620, 18, 88, 20],
     ing: [['rice', 1], ['mushrooms', 8], ['onion', 1], ['garlic', 2], ['stock', 3], ['parmesan', 1], ['butter', 2]],
     steps: [
@@ -318,7 +389,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'fried-rice', name: 'Egg Fried Rice', emoji: '🍚', time: 20, needs: ['stove'],
+    id: 'fried-rice', cuisine: 'asian', name: 'Egg Fried Rice', emoji: '🍚', time: 20, needs: ['stove'],
     tags: ['quick', 'budget', 'plant-forward'], macros: [540, 20, 80, 14],
     ing: [['rice', 1], ['eggs', 3], ['frozen_peas', 1], ['carrot', 1], ['scallion', 1],
       ['soy_sauce', 2], ['sesame_oil', 1]],
@@ -330,7 +401,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'mw-chili', name: 'Microwave Veggie Chili', emoji: '🫘', time: 25, needs: ['microwave'],
+    id: 'mw-chili', cuisine: 'mexican', name: 'Microwave Veggie Chili', emoji: '🫘', time: 25, needs: ['microwave'],
     tags: ['budget', 'healthy', 'plant-forward'], macros: [480, 20, 82, 8],
     ing: [['black_beans', 1], ['corn', 1], ['diced_tomatoes', 1], ['bell_pepper', 1], ['onion', 1],
       ['cumin', 2], ['paprika', 2], ['tortillas', 2]],
@@ -342,7 +413,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'pork-mash', name: 'Pork Chops with Mash & Broccoli', emoji: '🥔', time: 35, needs: ['stove'],
+    id: 'pork-mash', cuisine: 'american', name: 'Pork Chops with Mash & Broccoli', emoji: '🥔', time: 35, needs: ['stove'],
     tags: ['comfort', 'family', 'high-protein'], macros: [720, 46, 50, 34],
     ing: [['pork_chop', 1], ['potato', 1.5], ['butter', 2], ['milk', 0.5], ['broccoli', 1]],
     steps: [
@@ -353,7 +424,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'feta-pasta', name: 'Baked Feta Pasta', emoji: '🍅', time: 35, needs: ['oven', 'stove'],
+    id: 'feta-pasta', cuisine: 'mediterranean', name: 'Baked Feta Pasta', emoji: '🍅', time: 35, needs: ['oven', 'stove'],
     tags: ['comfort', 'plant-forward'], macros: [720, 24, 90, 28],
     ing: [['feta', 6], ['cherry_tomatoes', 2], ['pasta', 8], ['garlic', 3], ['spinach', 3], ['olive_oil', 3]],
     steps: [
@@ -364,7 +435,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'traybake', name: 'Lemon Garlic Chicken Traybake', emoji: '🍋', time: 50, needs: ['oven'],
+    id: 'traybake', cuisine: 'american', name: 'Lemon Garlic Chicken Traybake', emoji: '🍋', time: 50, needs: ['oven'],
     tags: ['family', 'comfort', 'high-protein'], macros: [720, 46, 44, 36],
     ing: [['chicken_thigh', 1.5], ['potato', 1], ['carrot', 3], ['lemon', 1], ['garlic', 4], ['paprika', 1]],
     steps: [
@@ -374,7 +445,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'tuna-quesadilla', name: 'Tuna Melt Quesadillas', emoji: '🧀', time: 15, needs: ['stove'],
+    id: 'tuna-quesadilla', cuisine: 'american', name: 'Tuna Melt Quesadillas', emoji: '🧀', time: 15, needs: ['stove'],
     tags: ['quick', 'budget', 'high-protein'], macros: [620, 42, 48, 26],
     ing: [['tuna_can', 2], ['tortillas', 4], ['cheddar', 4], ['scallion', 1], ['mayo', 2]],
     steps: [
@@ -384,7 +455,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'af-caesar-wraps', name: 'Air-Fryer Chicken Caesar Wraps', emoji: '🥗', time: 25, needs: ['airfryer'],
+    id: 'af-caesar-wraps', cuisine: 'american', name: 'Air-Fryer Chicken Caesar Wraps', emoji: '🥗', time: 25, needs: ['airfryer'],
     tags: ['high-protein', 'quick', 'healthy'], macros: [560, 50, 42, 18],
     ing: [['chicken_breast', 1], ['tortillas', 4], ['romaine', 1], ['parmesan', 1], ['greek_yogurt', 4],
       ['lemon', 1], ['garlic', 1]],
@@ -396,7 +467,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'fajitas', name: 'Mushroom & Pepper Fajitas', emoji: '🫑', time: 25, needs: ['stove'],
+    id: 'fajitas', cuisine: 'mexican', name: 'Mushroom & Pepper Fajitas', emoji: '🫑', time: 25, needs: ['stove'],
     tags: ['quick', 'budget', 'plant-forward'], macros: [560, 20, 64, 22],
     ing: [['bell_pepper', 3], ['onion', 1], ['mushrooms', 8], ['tortillas', 6], ['salsa', 0.5],
       ['cheddar', 3], ['cumin', 1], ['paprika', 1]],
@@ -407,7 +478,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'teriyaki-salmon', name: 'Teriyaki Salmon Rice Bowls', emoji: '🍣', time: 25, needs: ['stove'],
+    id: 'teriyaki-salmon', cuisine: 'asian', name: 'Teriyaki Salmon Rice Bowls', emoji: '🍣', time: 25, needs: ['stove'],
     tags: ['healthy', 'quick', 'high-protein'], macros: [680, 38, 78, 24],
     ing: [['salmon', 0.75], ['rice', 1], ['soy_sauce', 3], ['honey', 2], ['ginger', 1], ['cucumber', 1], ['avocado', 1]],
     steps: [
@@ -417,7 +488,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'sweet-potato-chili', name: 'Sweet Potato & Black Bean Chili', emoji: '🍠', time: 40, needs: ['stove'],
+    id: 'sweet-potato-chili', cuisine: 'mexican', name: 'Sweet Potato & Black Bean Chili', emoji: '🍠', time: 40, needs: ['stove'],
     tags: ['budget', 'healthy', 'plant-forward'], macros: [520, 18, 92, 8],
     ing: [['sweet_potato', 2], ['black_beans', 1], ['crushed_tomatoes', 1], ['onion', 1], ['garlic', 2],
       ['cumin', 2], ['paprika', 2], ['lime', 1]],
@@ -429,7 +500,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'shrimp-tacos', name: 'Shrimp Tacos with Lime Slaw', emoji: '🦐', time: 20, needs: ['stove'],
+    id: 'shrimp-tacos', cuisine: 'mexican', name: 'Shrimp Tacos with Lime Slaw', emoji: '🦐', time: 20, needs: ['stove'],
     tags: ['quick', 'healthy', 'high-protein'], macros: [540, 40, 50, 16],
     ing: [['shrimp', 0.75], ['tortillas', 6], ['cabbage', 0.5], ['lime', 2], ['greek_yogurt', 4], ['paprika', 1]],
     steps: [
@@ -440,7 +511,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'mac-cheese', name: 'Broccoli Mac & Cheese', emoji: '🧀', time: 25, needs: ['stove'],
+    id: 'mac-cheese', cuisine: 'american', name: 'Broccoli Mac & Cheese', emoji: '🧀', time: 25, needs: ['stove'],
     tags: ['comfort', 'family', 'plant-forward'], macros: [820, 32, 88, 36],
     ing: [['pasta', 8], ['cheddar', 8], ['milk', 1.5], ['butter', 2], ['broccoli', 1]],
     steps: [
@@ -450,7 +521,7 @@ export const RECIPES = [
     ],
   },
   {
-    id: 'pulled-chicken', name: 'Slow-Cooker BBQ Pulled Chicken', emoji: '🍔', time: 360, needs: ['slowcooker'],
+    id: 'pulled-chicken', cuisine: 'american', name: 'Slow-Cooker BBQ Pulled Chicken', emoji: '🍔', time: 360, needs: ['slowcooker'],
     tags: ['family', 'comfort', 'high-protein'], macros: [640, 50, 70, 14],
     ing: [['chicken_breast', 1.25], ['bbq_sauce', 6], ['buns', 4], ['cabbage', 0.5], ['onion', 1], ['mayo', 2]],
     steps: [
@@ -458,6 +529,362 @@ export const RECIPES = [
       'Cook on low for 6 hours (or high for 3 to 4).',
       'Shred the chicken with two forks into the sauce.',
       'Mix shredded cabbage with mayo and serve both in buns.',
+    ],
+  },
+  {
+    id: 'turkey-lettuce-tacos', cuisine: 'mexican', name: 'Turkey Taco Lettuce Wraps', emoji: '🥬', time: 20, needs: ['stove'],
+    tags: ['healthy', 'high-protein', 'quick'], macros: [420, 38, 12, 24],
+    ing: [['ground_turkey', 1], ['romaine', 1], ['salsa', 0.5], ['cheddar', 2], ['lime', 1], ['cumin', 2], ['paprika', 1]],
+    steps: [
+      'Brown the turkey with the cumin, paprika and a pinch of salt.',
+      'Stir in half the salsa and a squeeze of lime.',
+      'Spoon into romaine leaves and top with cheese and the rest of the salsa.',
+    ],
+  },
+  {
+    id: 'sausage-gnocchi', cuisine: 'italian', name: 'Sausage & Kale Gnocchi', emoji: '🥟', time: 25, needs: ['stove'],
+    tags: ['comfort', 'quick'], macros: [760, 32, 70, 38],
+    ing: [['italian_sausage', 0.75], ['gnocchi', 16], ['kale', 1], ['garlic', 2], ['parmesan', 1], ['chili_flakes', 1]],
+    steps: [
+      'Squeeze the sausage out of its casings and brown it in a large pan, breaking it up.',
+      'Add the gnocchi straight from the pack and fry until golden, about 6 minutes.',
+      'Add garlic, chili flakes and chopped kale with a splash of water and cook until the kale wilts.',
+      'Finish with parmesan.',
+    ],
+  },
+  {
+    id: 'palak-paneer', cuisine: 'indian', name: 'Palak Paneer', emoji: '🟩', time: 35, needs: ['stove'],
+    tags: ['plant-forward', 'comfort'], macros: [680, 30, 40, 44],
+    ing: [['paneer', 8], ['spinach', 10], ['onion', 1], ['garlic', 3], ['ginger', 1], ['garam_masala', 2],
+      ['heavy_cream', 0.25], ['naan', 2]],
+    steps: [
+      'Wilt the spinach in a splash of water, then blend it smooth.',
+      'Fry cubed paneer until golden and set aside.',
+      'Soften the onion, then add garlic, ginger and garam masala for 1 minute.',
+      'Stir in the spinach, cream and paneer and simmer 5 minutes. Serve with warm naan.',
+    ],
+  },
+  {
+    id: 'chana-masala', cuisine: 'indian', name: 'Chana Masala', emoji: '🫛', time: 30, needs: ['stove'],
+    tags: ['budget', 'healthy', 'plant-forward'], macros: [560, 20, 98, 10],
+    ing: [['chickpeas', 2], ['onion', 1], ['garlic', 3], ['ginger', 1], ['diced_tomatoes', 1], ['garam_masala', 2],
+      ['cumin', 1], ['rice', 1], ['cilantro', 1]],
+    steps: [
+      'Start the rice. Soften the onion, then add garlic, ginger and the spices for 1 minute.',
+      'Add the tomatoes and drained chickpeas with ½ cup water.',
+      'Simmer 15 minutes, mashing a few chickpeas to thicken.',
+      'Top with cilantro and serve with rice.',
+    ],
+  },
+  {
+    id: 'sheet-pan-fajitas', cuisine: 'mexican', name: 'Sheet-Pan Chicken Fajitas', emoji: '🌶️', time: 30, needs: ['oven'],
+    tags: ['family', 'high-protein', 'quick'], macros: [640, 46, 58, 22],
+    ing: [['chicken_breast', 1], ['bell_pepper', 2], ['onion', 1], ['tortillas', 6], ['sour_cream', 0.5],
+      ['cumin', 2], ['paprika', 2], ['lime', 1]],
+    steps: [
+      'Heat the oven to 425°F. Slice the chicken, peppers and onion into strips.',
+      'Toss with oil, the spices and salt and spread on a sheet pan.',
+      'Roast 18 to 20 minutes. Squeeze over the lime.',
+      'Serve in warm tortillas with sour cream.',
+    ],
+  },
+  {
+    id: 'pizza', cuisine: 'italian', name: 'Homemade Margherita Pizza', emoji: '🍕', time: 30, needs: ['oven'],
+    tags: ['family', 'comfort'], macros: [820, 34, 100, 30],
+    ing: [['pizza_dough', 1], ['marinara', 0.5], ['mozzarella', 8], ['cherry_tomatoes', 1], ['olive_oil', 1]],
+    steps: [
+      'Heat the oven as hot as it goes (500°F) with a baking sheet inside.',
+      'Stretch the dough thin on a piece of floured parchment.',
+      'Spread the sauce, then add the cheese and halved tomatoes.',
+      'Slide onto the hot sheet and bake 10 to 12 minutes. Drizzle with oil.',
+    ],
+  },
+  {
+    id: 'lemon-cod', cuisine: 'american', name: 'Lemon Butter Cod with Potatoes', emoji: '🐠', time: 30, needs: ['oven'],
+    tags: ['healthy', 'high-protein'], macros: [520, 36, 40, 20],
+    ing: [['cod', 0.75], ['green_beans', 1], ['potato', 1], ['lemon', 1], ['butter', 2], ['garlic', 2]],
+    steps: [
+      'Heat the oven to 425°F. Roast halved small potatoes with oil and salt for 15 minutes.',
+      'Add the green beans and the cod to the pan.',
+      'Melt the butter with garlic and lemon juice and spoon it over the fish.',
+      'Roast 10 to 12 minutes more until the cod flakes.',
+    ],
+  },
+  {
+    id: 'turkey-chili', cuisine: 'american', name: 'Turkey Chili', emoji: '🥣', time: 40, needs: ['stove'],
+    tags: ['healthy', 'high-protein', 'budget', 'family'], macros: [560, 44, 44, 20],
+    ing: [['ground_turkey', 1], ['kidney_beans', 1], ['crushed_tomatoes', 1], ['onion', 1], ['bell_pepper', 1],
+      ['cumin', 2], ['paprika', 2], ['cheddar', 2]],
+    steps: [
+      'Soften the onion and pepper, then brown the turkey with the spices.',
+      'Add the tomatoes and drained beans.',
+      'Simmer 25 minutes, stirring now and then.',
+      'Serve topped with cheese.',
+    ],
+  },
+  {
+    id: 'carnitas', cuisine: 'mexican', name: 'Slow-Cooker Carnitas Tacos', emoji: '🐖', time: 480, needs: ['slowcooker'],
+    tags: ['family', 'comfort', 'high-protein'], macros: [720, 48, 52, 34],
+    ing: [['pork_shoulder', 1.5], ['onion', 1], ['lime', 2], ['cumin', 2], ['corn_tortillas', 8], ['cilantro', 1], ['salsa', 0.5]],
+    steps: [
+      'Rub the pork with cumin and salt. Put it in the slow cooker on sliced onion with the juice of one lime.',
+      'Cook on low for 8 hours until it falls apart.',
+      'Shred it, then crisp it in a hot pan (or under the broiler) if you like.',
+      'Serve in warm tortillas with cilantro, salsa and lime.',
+    ],
+  },
+  {
+    id: 'minestrone', cuisine: 'italian', name: 'Slow-Cooker Minestrone', emoji: '🍲', time: 360, needs: ['slowcooker'],
+    tags: ['healthy', 'budget', 'plant-forward'], macros: [420, 18, 70, 8],
+    ing: [['cannellini', 1], ['diced_tomatoes', 1], ['carrot', 2], ['onion', 1], ['zucchini', 1], ['stock', 4],
+      ['pasta', 3], ['parmesan', 1]],
+    steps: [
+      'Add the chopped vegetables, beans, tomatoes and stock to the slow cooker.',
+      'Cook on low for 6 hours.',
+      'Stir in the pasta for the last 20 minutes (on high).',
+      'Serve with parmesan.',
+    ],
+  },
+  {
+    id: 'cauli-shawarma', cuisine: 'mediterranean', name: 'Roasted Cauliflower Shawarma Pitas', emoji: '🥙', time: 35, needs: ['oven'],
+    tags: ['healthy', 'plant-forward'], macros: [600, 20, 76, 26],
+    ing: [['cauliflower', 1], ['chickpeas', 1], ['pita', 4], ['tahini', 3], ['lemon', 1], ['cumin', 2], ['paprika', 2]],
+    steps: [
+      'Heat the oven to 425°F. Toss cauliflower florets and chickpeas with oil, the spices and salt.',
+      'Roast 25 minutes until charred at the edges.',
+      'Whisk tahini with lemon juice and water until pourable.',
+      'Stuff warm pitas and drizzle with the sauce.',
+    ],
+  },
+  {
+    id: 'greek-pitas', cuisine: 'mediterranean', name: 'Greek Chicken Pitas', emoji: '🫓', time: 25, needs: ['stove'],
+    tags: ['healthy', 'high-protein', 'quick'], macros: [560, 48, 52, 16],
+    ing: [['chicken_breast', 1], ['pita', 4], ['greek_yogurt', 6], ['cucumber', 1], ['cherry_tomatoes', 1],
+      ['lemon', 1], ['garlic', 1]],
+    steps: [
+      'Season the chicken with lemon zest, salt and pepper and pan-fry 6 minutes a side. Slice.',
+      'Grate half the cucumber into the yogurt with garlic and lemon juice.',
+      'Chop the rest of the cucumber with the tomatoes.',
+      'Fill warm pitas with chicken, salad and the yogurt sauce.',
+    ],
+  },
+  {
+    id: 'quinoa-bowl', cuisine: 'mediterranean', name: 'Quinoa Power Bowl', emoji: '🥗', time: 35, needs: ['stove', 'oven'],
+    tags: ['healthy', 'plant-forward'], macros: [620, 20, 82, 26],
+    ing: [['quinoa', 1], ['chickpeas', 1], ['sweet_potato', 1], ['kale', 1], ['avocado', 1], ['tahini', 2], ['lemon', 1]],
+    steps: [
+      'Heat the oven to 425°F. Roast cubed sweet potato and chickpeas with oil for 25 minutes.',
+      'Simmer the rinsed quinoa in 2 cups water for 15 minutes.',
+      'Massage the chopped kale with a little lemon juice and salt.',
+      'Build bowls and dress with tahini thinned with lemon juice and water.',
+    ],
+  },
+  {
+    id: 'hash', cuisine: 'american', name: 'Breakfast-for-Dinner Hash', emoji: '🥓', time: 30, needs: ['stove'],
+    tags: ['comfort', 'budget'], macros: [680, 30, 44, 42],
+    ing: [['potato', 1], ['bacon', 6], ['eggs', 4], ['onion', 1], ['bell_pepper', 1], ['paprika', 1]],
+    steps: [
+      'Fry the chopped bacon until crisp, then lift it out.',
+      'Cook diced potatoes in the fat, covered, for 10 minutes, then uncovered until crisp.',
+      'Add the onion, pepper and paprika for 5 minutes and return the bacon.',
+      'Make wells, crack in the eggs, cover and cook until set.',
+    ],
+  },
+  {
+    id: 'ricotta-bake', cuisine: 'italian', name: 'Spinach & Ricotta Pasta Bake', emoji: '🧀', time: 40, needs: ['stove', 'oven'],
+    tags: ['comfort', 'family', 'plant-forward'], macros: [780, 36, 90, 30],
+    ing: [['pasta', 8], ['ricotta', 8], ['marinara', 1.5], ['spinach', 5], ['mozzarella', 4], ['garlic', 2]],
+    steps: [
+      'Heat the oven to 400°F. Cook the pasta 2 minutes short of the pack time.',
+      'Wilt the spinach with garlic, then mix with the ricotta and some salt.',
+      'Toss the pasta with the marinara and spinach mix, and tip into a dish.',
+      'Top with mozzarella and bake 20 minutes.',
+    ],
+  },
+  {
+    id: 'ginger-tofu', cuisine: 'asian', name: 'Garlic Ginger Tofu & Green Beans', emoji: '🫚', time: 25, needs: ['stove'],
+    tags: ['quick', 'healthy', 'plant-forward'], macros: [540, 24, 70, 18],
+    ing: [['tofu', 1], ['green_beans', 1], ['soy_sauce', 3], ['garlic', 3], ['ginger', 1], ['rice', 1], ['sesame_oil', 1]],
+    steps: [
+      'Start the rice. Press and cube the tofu, then fry until golden on all sides.',
+      'Push it aside and stir-fry the green beans for 4 minutes.',
+      'Add grated garlic and ginger for 30 seconds, then the soy sauce and sesame oil.',
+      'Toss everything and serve over rice.',
+    ],
+  },
+  {
+    id: 'chicken-soup', cuisine: 'american', name: 'Chicken Noodle Soup', emoji: '🍜', time: 40, needs: ['stove'],
+    tags: ['comfort', 'family', 'healthy'], macros: [460, 40, 44, 10],
+    ing: [['chicken_breast', 1], ['carrot', 2], ['onion', 1], ['stock', 4], ['pasta', 3], ['garlic', 2]],
+    steps: [
+      'Soften the chopped onion and carrots with the garlic.',
+      'Add the stock, 2 cups water and the whole chicken breast and simmer 20 minutes.',
+      'Lift out the chicken, shred it and return it to the pot.',
+      'Add the pasta and cook until tender. Season well.',
+    ],
+  },
+  {
+    id: 'af-drumsticks', cuisine: 'asian', name: 'Air-Fryer Honey Garlic Drumsticks', emoji: '🍗', time: 35, needs: ['airfryer', 'microwave'],
+    tags: ['family', 'comfort', 'budget'], macros: [720, 46, 70, 26],
+    ing: [['chicken_drumsticks', 2], ['honey', 2], ['soy_sauce', 2], ['garlic', 3], ['rice', 1], ['broccoli', 1]],
+    steps: [
+      'Air-fry the seasoned drumsticks at 380°F for 25 minutes, turning halfway.',
+      'Microwave the rice with 2 cups water, covered, for 12 minutes. Steam the broccoli in the microwave for 3.',
+      'Warm the honey, soy sauce and grated garlic and toss with the drumsticks.',
+      'Air-fry 3 minutes more to glaze.',
+    ],
+  },
+  {
+    id: 'af-fish-tacos', cuisine: 'mexican', name: 'Air-Fryer Crispy Fish Tacos', emoji: '🐟', time: 25, needs: ['airfryer'],
+    tags: ['quick', 'healthy'], macros: [520, 34, 54, 16],
+    ing: [['cod', 0.75], ['panko', 1], ['eggs', 1], ['corn_tortillas', 6], ['cabbage', 0.25], ['lime', 1], ['sour_cream', 0.25]],
+    steps: [
+      'Cut the cod into strips, dip in beaten egg, then press into seasoned panko.',
+      'Spray with oil and air-fry at 400°F for 10 minutes.',
+      'Toss shredded cabbage with lime juice and salt.',
+      'Serve in warm tortillas with slaw and sour cream.',
+    ],
+  },
+  {
+    id: 'af-pork-chops', cuisine: 'american', name: 'Air-Fryer Parmesan Pork Chops', emoji: '🥩', time: 25, needs: ['airfryer'],
+    tags: ['quick', 'high-protein'], macros: [560, 50, 18, 30],
+    ing: [['pork_chop', 1], ['parmesan', 1], ['panko', 0.5], ['eggs', 1], ['green_beans', 1]],
+    steps: [
+      'Mix the panko and parmesan. Dip the chops in beaten egg, then the crumbs.',
+      'Air-fry at 380°F for 12 minutes, turning halfway.',
+      'Toss the green beans with oil and salt and air-fry 6 to 8 minutes.',
+    ],
+  },
+  {
+    id: 'mw-potatoes', cuisine: 'american', name: 'Loaded Microwave Baked Potatoes', emoji: '🥔', time: 20, needs: ['microwave'],
+    tags: ['budget', 'quick', 'comfort', 'plant-forward'], macros: [560, 22, 86, 16],
+    ing: [['potato', 1.5], ['black_beans', 1], ['cheddar', 3], ['sour_cream', 0.25], ['scallion', 1], ['salsa', 0.5]],
+    steps: [
+      'Prick the potatoes and microwave 8 to 12 minutes, turning once, until soft.',
+      'Microwave the beans with the salsa for 2 minutes.',
+      'Split the potatoes and fill with beans, cheese, sour cream and scallions.',
+    ],
+  },
+  {
+    id: 'mw-salmon', cuisine: 'asian', name: 'Microwave Ginger Soy Salmon', emoji: '🍱', time: 20, needs: ['microwave'],
+    tags: ['healthy', 'quick', 'high-protein'], macros: [580, 38, 64, 18],
+    ing: [['salmon', 0.75], ['ginger', 1], ['soy_sauce', 2], ['scallion', 1], ['broccoli', 1], ['rice', 1]],
+    steps: [
+      'Microwave the rice with 2 cups water, covered, for 12 minutes, then let it stand.',
+      'Put the salmon and broccoli in a dish with grated ginger, soy sauce and 2 tbsp water.',
+      'Cover and microwave 4 to 5 minutes until the fish flakes.',
+      'Top with scallions and serve over rice.',
+    ],
+  },
+  {
+    id: 'mw-curry', cuisine: 'indian', name: 'Microwave Coconut Chickpea Curry', emoji: '🥥', time: 20, needs: ['microwave'],
+    tags: ['quick', 'budget', 'plant-forward'], macros: [640, 18, 80, 28],
+    ing: [['chickpeas', 1], ['coconut_milk', 1], ['curry_paste', 2], ['spinach', 4], ['rice', 1]],
+    steps: [
+      'Microwave the rice with 2 cups water, covered, for 12 minutes, then let it stand.',
+      'Mix the curry paste and coconut milk in a large bowl and add the drained chickpeas.',
+      'Microwave covered for 5 minutes, stir in the spinach and microwave 1 minute more.',
+    ],
+  },
+  {
+    id: 'eggplant-parm', cuisine: 'italian', name: 'Baked Eggplant Parmesan', emoji: '🍆', time: 50, needs: ['oven', 'stove'],
+    tags: ['comfort', 'plant-forward'], macros: [700, 32, 84, 26],
+    ing: [['eggplant', 1], ['panko', 1], ['eggs', 2], ['marinara', 1], ['mozzarella', 4], ['parmesan', 1], ['pasta', 4]],
+    steps: [
+      'Heat the oven to 425°F. Slice the eggplant, dip in egg, then panko mixed with half the parmesan.',
+      'Bake on an oiled sheet 20 minutes, turning once.',
+      'Layer in a dish with marinara and mozzarella and bake 15 minutes more.',
+      'Serve with pasta tossed in the rest of the sauce.',
+    ],
+  },
+  {
+    id: 'bibimbap', cuisine: 'asian', name: 'Beef Bibimbap Bowls', emoji: '🍚', time: 30, needs: ['stove'],
+    tags: ['high-protein'], macros: [680, 34, 74, 26],
+    ing: [['ground_beef', 0.5], ['rice', 1], ['spinach', 4], ['carrot', 1], ['eggs', 2], ['gochujang', 2],
+      ['soy_sauce', 1], ['sesame_oil', 1]],
+    steps: [
+      'Start the rice. Brown the beef with the soy sauce.',
+      'Quickly sauté the spinach and the carrot cut into matchsticks, separately.',
+      'Fry the eggs sunny side up.',
+      'Top bowls of rice with everything and a spoonful of gochujang thinned with sesame oil.',
+    ],
+  },
+  {
+    id: 'shrimp-noodles', cuisine: 'asian', name: 'Peanut-Lime Shrimp Noodles', emoji: '🍜', time: 25, needs: ['stove'],
+    tags: ['quick'], macros: [640, 32, 82, 20],
+    ing: [['shrimp', 0.5], ['noodles', 7], ['eggs', 2], ['peanut_butter', 1], ['lime', 1], ['scallion', 1],
+      ['soy_sauce', 2], ['honey', 1]],
+    steps: [
+      'Soak or boil the noodles as the pack says.',
+      'Whisk peanut butter, soy sauce, honey, lime juice and 2 tbsp hot water.',
+      'Cook the shrimp 2 minutes, push aside, and scramble the eggs.',
+      'Toss in the noodles and sauce. Top with scallions.',
+    ],
+  },
+  {
+    id: 'cashew-chicken', cuisine: 'asian', name: 'Cashew Chicken', emoji: '🥡', time: 25, needs: ['stove'],
+    tags: ['quick', 'high-protein'], macros: [700, 46, 72, 24],
+    ing: [['chicken_breast', 1], ['cashews', 2], ['bell_pepper', 1], ['soy_sauce', 3], ['honey', 1], ['garlic', 2], ['rice', 1]],
+    steps: [
+      'Start the rice. Toast the cashews in a dry pan and set aside.',
+      'Stir-fry the diced chicken until golden, then add the pepper and garlic.',
+      'Add soy sauce, honey and a splash of water and bubble until glossy.',
+      'Stir in the cashews and serve with rice.',
+    ],
+  },
+  {
+    id: 'white-bean-soup', cuisine: 'italian', name: 'Tuscan White Bean & Kale Soup', emoji: '🥣', time: 35, needs: ['stove'],
+    tags: ['healthy', 'budget', 'plant-forward'], macros: [420, 22, 60, 10],
+    ing: [['cannellini', 2], ['kale', 1], ['carrot', 1], ['onion', 1], ['garlic', 3], ['stock', 4], ['parmesan', 1]],
+    steps: [
+      'Soften the onion and carrot, then add the garlic.',
+      'Add the beans and stock and simmer 15 minutes.',
+      'Mash some beans to thicken, then stir in the chopped kale for 5 minutes.',
+      'Serve with parmesan.',
+    ],
+  },
+  {
+    id: 'couscous', cuisine: 'mediterranean', name: 'Moroccan Chickpea Couscous', emoji: '🥕', time: 25, needs: ['stove'],
+    tags: ['quick', 'budget', 'plant-forward'], macros: [560, 18, 100, 10],
+    ing: [['couscous', 1], ['chickpeas', 1], ['carrot', 2], ['zucchini', 1], ['cumin', 2], ['paprika', 1],
+      ['lemon', 1], ['cilantro', 1]],
+    steps: [
+      'Pour 1¼ cups boiling water over the couscous, cover and leave 5 minutes.',
+      'Fry the diced carrot and zucchini with the spices until tender.',
+      'Add the chickpeas and warm through.',
+      'Fluff the couscous with lemon juice and mix in the vegetables and cilantro.',
+    ],
+  },
+  {
+    id: 'sausage-peppers', cuisine: 'italian', name: 'Sausage, Peppers & Potatoes', emoji: '🫑', time: 40, needs: ['oven'],
+    tags: ['family', 'comfort'], macros: [760, 32, 40, 50],
+    ing: [['italian_sausage', 1], ['bell_pepper', 2], ['onion', 1], ['potato', 1], ['garlic', 2]],
+    steps: [
+      'Heat the oven to 425°F. Chop the potatoes, peppers and onion into chunks.',
+      'Toss with oil, garlic and salt, and add the sausages.',
+      'Roast 35 minutes, turning once.',
+    ],
+  },
+  {
+    id: 'italian-beef', cuisine: 'american', name: 'Slow-Cooker Italian Beef Sandwiches', emoji: '🥖', time: 480, needs: ['slowcooker'],
+    tags: ['family', 'comfort', 'high-protein'], macros: [780, 50, 52, 38],
+    ing: [['chuck_roast', 1.25], ['stock', 2], ['rolls', 4], ['bell_pepper', 1], ['garlic', 3], ['giardiniera', 0.5]],
+    steps: [
+      'Season the beef well and put it in the slow cooker with the garlic and stock.',
+      'Cook on low for 8 hours, then shred it in the juices.',
+      'Fry the sliced pepper until soft.',
+      'Pile beef into the rolls, dip them in the juice if you like, and top with peppers and giardiniera.',
+    ],
+  },
+  {
+    id: 'huevos', cuisine: 'mexican', name: 'Huevos Rancheros', emoji: '🍳', time: 20, needs: ['stove'],
+    tags: ['quick', 'budget', 'plant-forward'], macros: [580, 26, 50, 30],
+    ing: [['eggs', 4], ['black_beans', 1], ['corn_tortillas', 4], ['salsa', 0.5], ['avocado', 1], ['cheddar', 2]],
+    steps: [
+      'Warm the beans with a spoonful of salsa, mashing a little.',
+      'Crisp the tortillas in a lightly oiled pan.',
+      'Fry the eggs.',
+      'Top the tortillas with beans, eggs, salsa, cheese and sliced avocado.',
     ],
   },
 ];

@@ -90,6 +90,12 @@ h1, h2, h3, h4 { margin: 0; line-height: 1.2; }
 .item-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .item.done .item-body > div:first-child { text-decoration: line-through; color: var(--muted); }
 .price { font-variant-numeric: tabular-nums; font-weight: 600; }
+.price-col { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; }
+.have { border: 1px solid var(--line); background: var(--bg); border-radius: 999px; font-size: 12px; padding: 3px 9px; cursor: pointer; color: var(--muted); }
+.have.on { background: var(--green); border-color: var(--green); color: #fff; }
+.item.owned .item-body > div:first-child { color: var(--muted); }
+.toggle { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; }
+.toggle input { width: 22px; height: 22px; accent-color: var(--accent); flex: none; }
 .pantry .item { padding: 10px 14px; }
 .opt { width: 100%; background: none; border-left: 0; border-right: 0; border-bottom: 0; text-align: left; cursor: pointer; }
 .delta { font-weight: 700; font-variant-numeric: tabular-nums; }

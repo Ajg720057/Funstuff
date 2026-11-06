@@ -1,6 +1,6 @@
 // Network-first service worker: always tries for the latest version, falls
 // back to the cached copy when offline so the app still opens.
-const CACHE = 'supper-v1';
+const CACHE = 'supper-v2';
 const FILES = ['./', 'index.html', 'css/style.css', 'js/app.js', 'js/planner.js', 'js/data.js', 'manifest.webmanifest', 'icons/icon-192.png'];
 
 self.addEventListener('install', (e) => {

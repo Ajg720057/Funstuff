@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { INGREDIENTS, RECIPES } from '../js/data.js';
+import { INGREDIENTS, RECIPES, REGIONS, CUISINES } from '../js/data.js';
 import {
-  DEFAULT_SETTINGS, candidates, makePlan, shoppingList, mealCost, swapOptions, formatQty, recipeById,
+  DEFAULT_SETTINGS, candidates, servings, makePlan, shoppingList, mealCost, swapOptions, formatQty, recipeById,
 } from '../js/planner.js';
 
 const S = (over = {}) => ({ ...DEFAULT_SETTINGS, ...over });
@@ -18,6 +18,7 @@ test('every recipe uses known ingredients, appliances and has steps', () => {
     }
     assert.ok(r.steps.length >= 2);
     assert.equal(r.macros.length, 4);
+    assert.ok(CUISINES[r.cuisine], `${r.id}: cuisine ${r.cuisine}`);
   }
 });
 
@@ -63,7 +64,7 @@ test('a tight budget picks a cheaper week than a loose one', () => {
 
 test('shopping list buys whole packs and skips pantry staples in the total', () => {
   const r = recipeById('pesto-pasta');
-  const { items, total } = shoppingList([r, recipeById('bolognese')], S({ store: 'kroger' }));
+  const { items, total } = shoppingList([r, recipeById('bolognese')], S({ region: 'us', store: 'kroger', taxRate: 0 }));
   const pasta = items.find((i) => i.key === 'pasta');
   assert.equal(pasta.qty, 16);
   assert.equal(pasta.packs, 1);
@@ -89,4 +90,57 @@ test('quantities read naturally', () => {
   assert.equal(formatQty(1, 'onion'), '1 onion');
   assert.equal(formatQty(1.5, 'lb'), '1.5 lb');
   assert.equal(formatQty(0.75, 'cup'), '0.75 cup');
+});
+
+test('there are at least 60 recipes and every region store resolves', () => {
+  assert.ok(RECIPES.length >= 60);
+  for (const [region, { stores }] of Object.entries(REGIONS)) {
+    for (const store of Object.keys(stores)) {
+      const plan = makePlan(S({ region, store }), { seed: 5 });
+      assert.equal(plan.ids.length, 7);
+    }
+  }
+});
+
+test('Chicago costs more than the US average at the same store', () => {
+  const r = recipeById('tikka');
+  assert.ok(mealCost(r, S({ region: 'chicago', store: 'walmart' })) > mealCost(r, S({ region: 'us', store: 'walmart' })));
+});
+
+test('grocery tax is added on top of the subtotal', () => {
+  const rs = [recipeById('tikka'), recipeById('dhal')];
+  const l = shoppingList(rs, S({ taxRate: 1 }));
+  assert.equal(l.tax, Math.round(l.subtotal * 0.01 * 100) / 100);
+  assert.equal(l.total, Math.round((l.subtotal + l.tax) * 100) / 100);
+  assert.equal(shoppingList(rs, S({ taxRate: 0 })).tax, 0);
+});
+
+test('items already at home are not counted', () => {
+  const rs = [recipeById('tikka')];
+  const full = shoppingList(rs, S({ taxRate: 0 }));
+  const less = shoppingList(rs, S({ taxRate: 0 }), ['chicken_thigh']);
+  const chicken = full.items.find((i) => i.key === 'chicken_thigh');
+  assert.equal(Math.round((full.total - less.total) * 100), Math.round(chicken.cost * 100));
+  assert.ok(less.items.find((i) => i.key === 'chicken_thigh').have);
+});
+
+test('allergy filters remove recipes with those allergens', () => {
+  const settings = S({ allergies: ['g', 'n', 's'] });
+  const list = candidates(settings);
+  assert.ok(list.length >= 10, `${list.length}`);
+  for (const r of list) {
+    for (const [k] of r.ing) assert.ok(!/[gns]/.test(INGREDIENTS[k].allergens), `${r.id} has ${k}`);
+  }
+  assert.ok(!list.some((r) => r.id === 'peanut-noodles' || r.id === 'pesto-pasta'));
+});
+
+test('cuisine and calorie filters apply', () => {
+  for (const r of candidates(S({ cuisines: ['indian', 'mexican'] }))) assert.ok(['indian', 'mexican'].includes(r.cuisine));
+  for (const r of candidates(S({ maxKcal: 600 }))) assert.ok(r.macros[0] <= 600);
+});
+
+test('cooking extra for lunch doubles portions and cost', () => {
+  const r = recipeById('dhal');
+  assert.equal(servings(S({ people: 2, lunches: true })), 4);
+  assert.equal(mealCost(r, S({ lunches: true })), mealCost(r, S({ people: 4 })));
 });
