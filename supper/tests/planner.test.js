@@ -38,7 +38,7 @@ test('dislikes remove recipes containing that ingredient', () => {
 test('appliances limit recipes', () => {
   const list = candidates(S({ appliances: ['microwave'] }));
   assert.ok(list.length >= 2);
-  for (const r of list) assert.deepEqual(r.needs, ['microwave']);
+  for (const r of list) assert.ok(r.needs.every((a) => a === 'microwave'), r.id);
 });
 
 test('plan has the requested number of distinct nights and fits a normal budget', () => {
@@ -92,8 +92,8 @@ test('quantities read naturally', () => {
   assert.equal(formatQty(0.75, 'cup'), '0.75 cup');
 });
 
-test('there are at least 60 recipes and every region store resolves', () => {
-  assert.ok(RECIPES.length >= 60);
+test('there are at least 100 recipes and every region store resolves', () => {
+  assert.ok(RECIPES.length >= 100);
   for (const [region, { stores }] of Object.entries(REGIONS)) {
     for (const store of Object.keys(stores)) {
       const plan = makePlan(S({ region, store }), { seed: 5 });
