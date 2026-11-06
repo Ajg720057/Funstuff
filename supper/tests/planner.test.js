@@ -144,3 +144,10 @@ test('cooking extra for lunch doubles portions and cost', () => {
   assert.equal(servings(S({ people: 2, lunches: true })), 4);
   assert.equal(mealCost(r, S({ lunches: true })), mealCost(r, S({ people: 4 })));
 });
+
+test('Mediterranean-only plans have plenty of choice', () => {
+  const list = candidates(S({ cuisines: ['mediterranean'] }));
+  assert.ok(list.length >= 15, `${list.length}`);
+  const plan = makePlan(S({ cuisines: ['mediterranean'] }), { seed: 9 });
+  assert.equal(new Set(plan.ids).size, 7);
+});

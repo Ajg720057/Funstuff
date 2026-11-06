@@ -115,6 +115,14 @@ const RAW_INGREDIENTS = {
   asparagus: ['Asparagus', 'lb', 1, 3.5, 'Produce', 'v'],
   jalapeno: ['Jalapeño', 'pepper', 1, 0.3, 'Produce', 'v'],
   hot_sauce: ['Hot sauce', 'tbsp', 1, 0, 'Pantry', 'p'],
+  ground_lamb: ['Ground lamb', 'lb', 1, 8.0, 'Meat & fish', 'm'],
+  hummus: ['Hummus', 'oz', 10, 3.5, 'Refrigerated', 'v'],
+  artichokes: ['Artichoke hearts', 'can', 1, 2.8, 'Canned & jarred', 'v'],
+  roasted_peppers: ['Roasted red peppers', 'oz', 12, 3.0, 'Canned & jarred', 'v'],
+  bulgur: ['Bulgur wheat', 'cup', 2.5, 3.0, 'Rice, pasta & grains', 'v'],
+  brown_lentils: ['Brown lentils', 'cup', 2.5, 1.8, 'Rice, pasta & grains', 'v'],
+  parsley: ['Flat-leaf parsley', 'bunch', 1, 0.9, 'Produce', 'v'],
+  oregano: ['Dried oregano', 'tsp', 1, 0, 'Pantry', 'p'],
 };
 
 // Common allergens in each ingredient (check labels: brands differ).
@@ -125,7 +133,7 @@ const ALLERGENS = {
   milk: 'd', butter: 'd', paneer: 'd', ricotta: 'd', mozzarella: 'd', sour_cream: 'd',
   pasta: 'g', tortillas: 'g', naan: 'gd', buns: 'g', rolls: 'g', pita: 'g', couscous: 'g',
   gnocchi: 'g', panko: 'g', pizza_dough: 'g', soy_sauce: 'gy', gochujang: 'gy', pesto: 'dn',
-  peanut_butter: 'n', cashews: 'n', tilapia: 'f', egg_noodles: 'ge', miso: 'y',
+  peanut_butter: 'n', cashews: 'n', tilapia: 'f', egg_noodles: 'ge', miso: 'y', bulgur: 'g',
 };
 
 export const INGREDIENTS = Object.fromEntries(
@@ -1307,6 +1315,149 @@ export const RECIPES = [
       'Cook on low for 6 hours.',
       'Shred the chicken in the pot.',
       'Stir in the sour cream before serving.',
+    ],
+  },
+  {
+    id: 'lamb-kofta', cuisine: 'mediterranean', name: 'Lamb Kofta with Tzatziki', emoji: '🍢', time: 30, needs: ['stove'],
+    tags: ['high-protein'], macros: [720, 40, 48, 40],
+    ing: [['ground_lamb', 1], ['onion', 1], ['parsley', 1], ['cumin', 2], ['greek_yogurt', 6], ['cucumber', 1], ['garlic', 2], ['pita', 4]],
+    steps: [
+      'Grate the onion and mix it with the lamb, half the chopped parsley, cumin and salt.',
+      'Shape into 8 small logs and pan-fry 8 to 10 minutes, turning, until browned.',
+      'Grate the cucumber into the yogurt with garlic and salt for tzatziki.',
+      'Serve in warm pitas with the tzatziki and the rest of the parsley.',
+    ],
+  },
+  {
+    id: 'mujadara', cuisine: 'mediterranean', name: 'Mujadara (Lentils, Rice & Crispy Onions)', emoji: '🧅', time: 45, needs: ['stove'],
+    tags: ['budget', 'healthy', 'plant-forward'], macros: [580, 22, 96, 12],
+    ing: [['brown_lentils', 0.75], ['rice', 0.75], ['onion', 2], ['cumin', 2], ['greek_yogurt', 4], ['cucumber', 1]],
+    steps: [
+      'Simmer the lentils in plenty of water for 15 minutes, then drain.',
+      'Meanwhile fry the thinly sliced onions slowly in oil until deep brown and crisp, about 25 minutes.',
+      'Cook the rice and lentils together with the cumin and 1½ cups water, covered, for 15 minutes.',
+      'Top with the onions and serve with yogurt and chopped cucumber (skip the yogurt for vegan).',
+    ],
+  },
+  {
+    id: 'tabbouleh-halloumi', cuisine: 'mediterranean', name: 'Tabbouleh with Golden Halloumi', emoji: '🌿', time: 25, needs: ['stove'],
+    tags: ['quick', 'healthy', 'plant-forward'], macros: [620, 26, 52, 34],
+    ing: [['bulgur', 0.75], ['parsley', 2], ['cherry_tomatoes', 1], ['cucumber', 1], ['lemon', 2], ['halloumi', 8], ['olive_oil', 2]],
+    steps: [
+      'Pour 1½ cups boiling water over the bulgur, cover and leave 15 minutes.',
+      'Finely chop the parsley, tomatoes and cucumber.',
+      'Mix with the bulgur, lemon juice, oil and salt.',
+      'Fry slices of halloumi until golden and serve on top.',
+    ],
+  },
+  {
+    id: 'souvlaki', cuisine: 'mediterranean', name: 'Greek Chicken Souvlaki Plates', emoji: '🍢', time: 35, needs: ['stove'],
+    tags: ['high-protein', 'healthy'], macros: [640, 50, 62, 18],
+    ing: [['chicken_breast', 1], ['lemon', 1], ['oregano', 2], ['garlic', 2], ['rice', 1], ['greek_yogurt', 4], ['cucumber', 1], ['cherry_tomatoes', 1]],
+    steps: [
+      'Cube the chicken and toss with lemon juice, oregano, garlic, oil and salt.',
+      'Start the rice. Cook the chicken in a hot pan (or on skewers) for 8 to 10 minutes.',
+      'Mix the yogurt with grated cucumber and salt.',
+      'Serve the chicken with rice, tomatoes and the yogurt sauce.',
+    ],
+  },
+  {
+    id: 'baked-cod-olives', cuisine: 'mediterranean', name: 'Baked Cod with Tomatoes & Olives', emoji: '🐟', time: 25, needs: ['oven'],
+    tags: ['healthy', 'high-protein', 'quick'], macros: [540, 38, 58, 14],
+    ing: [['cod', 0.75], ['cherry_tomatoes', 1], ['olives', 2], ['lemon', 1], ['garlic', 2], ['couscous', 0.75], ['oregano', 1]],
+    steps: [
+      'Heat the oven to 425°F. Put the cod in a dish with the tomatoes, olives, sliced garlic, oregano and oil.',
+      'Bake 15 minutes until the fish flakes.',
+      'Pour 1 cup boiling water over the couscous, cover 5 minutes, then fluff with lemon juice.',
+      'Serve the fish and its juices over the couscous.',
+    ],
+  },
+  {
+    id: 'feta-stuffed-chicken', cuisine: 'mediterranean', name: 'Spinach & Feta Stuffed Chicken', emoji: '🥬', time: 35, needs: ['oven'],
+    tags: ['high-protein', 'healthy'], macros: [520, 56, 22, 24],
+    ing: [['chicken_breast', 1], ['spinach', 3], ['feta', 3], ['garlic', 1], ['green_beans', 1], ['lemon', 1]],
+    steps: [
+      'Heat the oven to 400°F. Wilt the spinach with garlic and mix with the crumbled feta.',
+      'Cut a pocket in each chicken breast and stuff it.',
+      'Roast 22 to 25 minutes with the green beans alongside.',
+      'Finish with lemon juice.',
+    ],
+  },
+  {
+    id: 'hummus-bowls', cuisine: 'mediterranean', name: 'Hummus Bowls with Spiced Beef', emoji: '🥙', time: 20, needs: ['stove'],
+    tags: ['quick', 'high-protein'], macros: [760, 40, 52, 44],
+    ing: [['ground_beef', 0.75], ['hummus', 8], ['cumin', 1], ['paprika', 1], ['cucumber', 1], ['cherry_tomatoes', 1], ['parsley', 1], ['pita', 2]],
+    steps: [
+      'Brown the beef with the cumin, paprika and salt until crispy at the edges.',
+      'Spread the hummus in shallow bowls.',
+      'Top with the beef, chopped cucumber, tomatoes and parsley.',
+      'Serve with warm pita for scooping.',
+    ],
+  },
+  {
+    id: 'artichoke-orzo', cuisine: 'mediterranean', name: 'Artichoke, Olive & Lemon Orzo', emoji: '🫒', time: 20, needs: ['stove'],
+    tags: ['quick', 'plant-forward'], macros: [640, 22, 90, 22],
+    ing: [['pasta', 8], ['artichokes', 1], ['olives', 2], ['lemon', 1], ['feta', 3], ['spinach', 3], ['garlic', 2]],
+    steps: [
+      'Cook the orzo (or other small pasta).',
+      'Fry the drained, quartered artichokes with garlic until golden.',
+      'Toss in the pasta with olives, spinach and lemon juice until the spinach wilts.',
+      'Top with crumbled feta.',
+    ],
+  },
+  {
+    id: 'sc-chicken-tagine', cuisine: 'mediterranean', name: 'Slow-Cooker Chicken Tagine', emoji: '🍲', time: 360, needs: ['slowcooker'],
+    tags: ['family', 'healthy', 'high-protein'], macros: [640, 44, 72, 18],
+    ing: [['chicken_thigh', 1], ['chickpeas', 1], ['carrot', 2], ['onion', 1], ['diced_tomatoes', 1], ['olives', 2], ['cumin', 2], ['paprika', 2], ['couscous', 0.75], ['lemon', 1]],
+    steps: [
+      'Put the chicken, chickpeas, chopped carrot and onion, tomatoes and spices in the slow cooker.',
+      'Cook on low for 6 hours.',
+      'Stir in the olives and lemon juice.',
+      'Serve over couscous made with boiling water.',
+    ],
+  },
+  {
+    id: 'lentil-soup', cuisine: 'mediterranean', name: 'Turkish Red Lentil Soup', emoji: '🥣', time: 30, needs: ['stove'],
+    tags: ['budget', 'healthy', 'plant-forward'], macros: [460, 24, 76, 6],
+    ing: [['red_lentils', 1], ['onion', 1], ['carrot', 1], ['diced_tomatoes', 1], ['cumin', 2], ['stock', 4], ['lemon', 1], ['pita', 2]],
+    steps: [
+      'Soften the onion and carrot with the cumin.',
+      'Add the lentils, tomatoes and stock and simmer 20 minutes.',
+      'Blend until smooth (or mash well) and add lemon juice to taste.',
+      'Serve with warm pita.',
+    ],
+  },
+  {
+    id: 'af-halloumi-couscous', cuisine: 'mediterranean', name: 'Air-Fryer Halloumi & Veggie Couscous', emoji: '🧀', time: 25, needs: ['airfryer', 'microwave'],
+    tags: ['quick', 'plant-forward'], macros: [680, 30, 70, 32],
+    ing: [['halloumi', 8], ['zucchini', 1], ['bell_pepper', 1], ['couscous', 0.75], ['lemon', 1], ['parsley', 1]],
+    steps: [
+      'Toss the chopped zucchini and pepper with oil and air-fry at 400°F for 10 minutes.',
+      'Add the sliced halloumi and air-fry 6 minutes more.',
+      'Microwave 1 cup water until boiling, pour over the couscous and cover 5 minutes.',
+      'Fluff with lemon juice and parsley and top with the vegetables and halloumi.',
+    ],
+  },
+  {
+    id: 'mw-greek-couscous', cuisine: 'mediterranean', name: 'Microwave Greek Couscous Bowls', emoji: '🫙', time: 15, needs: ['microwave'],
+    tags: ['quick', 'budget', 'plant-forward'], macros: [600, 22, 82, 20],
+    ing: [['couscous', 0.75], ['chickpeas', 1], ['roasted_peppers', 6], ['cucumber', 1], ['olives', 2], ['feta', 3], ['lemon', 1]],
+    steps: [
+      'Microwave 1 cup water until boiling, pour over the couscous and cover 5 minutes.',
+      'Chop the peppers and cucumber.',
+      'Toss everything with lemon juice, a little oil and salt.',
+      'Top with crumbled feta.',
+    ],
+  },
+  {
+    id: 'ratatouille-beans', cuisine: 'mediterranean', name: 'Roasted Ratatouille with White Beans', emoji: '🍆', time: 45, needs: ['oven'],
+    tags: ['healthy', 'budget', 'plant-forward'], macros: [480, 18, 66, 16],
+    ing: [['eggplant', 1], ['zucchini', 1], ['bell_pepper', 1], ['cherry_tomatoes', 1], ['cannellini', 1], ['garlic', 3], ['oregano', 1], ['pita', 2]],
+    steps: [
+      'Heat the oven to 425°F. Chop the eggplant, zucchini and pepper into chunks.',
+      'Toss with tomatoes, garlic, oregano, oil and salt on a large tray.',
+      'Roast 30 minutes, add the beans and roast 5 more.',
+      'Serve with warm pita.',
     ],
   },
 ];
